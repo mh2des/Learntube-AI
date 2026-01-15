@@ -1,0 +1,17 @@
+<svg width="180" height="40" viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- LearnTube AI Logo - Full wordmark with icon -->
+  
+  <!-- Icon mark -->
+  <rect x="0" y="4" width="32" height="32" rx="8" fill="#DC2626"/>
+  <path d="M12 12L23 20L12 28V12Z" fill="white"/>
+  
+  <!-- Wordmark: LearnTube -->
+  <text x="42" y="27" font-family="Space Grotesk, system-ui, sans-serif" font-size="20" font-weight="600" fill="currentColor">
+    LearnTube
+  </text>
+  
+  <!-- AI suffix in brand color -->
+  <text x="142" y="27" font-family="Space Grotesk, system-ui, sans-serif" font-size="20" font-weight="600" fill="#DC2626">
+    AI
+  </text>
+</svg>

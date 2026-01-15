@@ -1,0 +1,120 @@
+# ============================================
+# LearnTube AI - Professional .gitignore
+# ============================================
+
+# ===== Environment Variables & Secrets =====
+.env
+.env.local
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pem
+secrets/
+credentials.json
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv
+backend/venv/
+
+# Python Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# ===== Node.js & Frontend =====
+node_modules/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Next.js
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Production builds
+.vercel
+.turbo
+
+# ===== IDE & Editors =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
+logs/
+temp/
+tmp/
+*.tmp
+
+# ===== OS Files =====
+.DS_Store
+Thumbs.db
+*.bak
+
+# ===== Unnecessary Documentation =====
+BUSINESS_MODEL.md
+SEPARATION_SUMMARY.md
+QUICK_START.md
+nul
+- 📝 Smart Summaries & Key Takeaways
+- 🎴 Auto-generated Flashcards & Quizzes
+- 🤖 AI Tutor Chat
+- 🌍 Translation (25+ languages)
+- 📚 Study Guides & Academic Citations
+- 📊 Learning Analytics
+
+## 📖 Documentation
+
+- [Main README](./README.md) - Complete documentation
+- [Frontend README](./frontend/README.md) - Frontend setup
+- [Backend README](./backend/README.md) - Backend setup
+- [Business Model](./BUSINESS_MODEL.md) - Business strategy
+
+## 💼 Business Model
+
+- **Free**: 5 videos/month + basic features
+- **Pro**: $9.99/mo - Unlimited videos + AI tutor
+- **Team**: $29/mo - Team workspaces
+- **Enterprise**: Custom pricing
+
+## ⚖️ Legal
+
+✅ 100% YouTube ToS compliant - no video downloading
+✅ Uses YouTube embedded player only
+✅ Focuses on learning enhancement
+
+## 📞 Contact
+
+- **Email**: support@learntube.ai
+- **Website**: https://learntube.ai
+
+---
+
+**Built with ❤️ for learners worldwide** 🌍📚🚀
