@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="frontend/public/web_logo.svg" alt="LearnTube AI Logo" width="200" />
+
 # 🎓 LearnTube AI
 
 ### **AI-Powered Learning Platform**

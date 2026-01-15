@@ -258,6 +258,15 @@ export default function HomePage() {
       <section className="section relative">
         <div className="container">
           <div className="max-w-4xl mx-auto text-center">
+            {/* Logo */}
+            <div className="mb-6 animate-fade-in flex justify-center">
+              <img 
+                src="/web_logo.svg" 
+                alt="LearnTube AI" 
+                className="h-20 w-20 object-contain"
+              />
+            </div>
+
             {/* Badge */}
             <div className="animate-fade-in-down">
               <Badge>
