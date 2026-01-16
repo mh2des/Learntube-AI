@@ -195,42 +195,76 @@ export default function LearnPage() {
     setTranscriptSource(null);
 
     try {
-      // Call backend to get video info (GET request with query param)
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/video/info?url=${encodeURIComponent(urlInput)}`
+      // Fast path: instant metadata via oEmbed/cache
+      const fastResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/video/info/fast?url=${encodeURIComponent(urlInput)}`
       );
 
-      if (!response.ok) {
+      if (!fastResponse.ok) {
         throw new Error('Failed to fetch video info');
       }
 
-      const result = await response.json();
-      const data = result.data;
-      
-      // Store YouTube video info
+      const fastResult = await fastResponse.json();
+      const fastData = fastResult.data;
+
+      // Render instantly with fast metadata
       setYoutubeInfo({
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        thumbnail: data.thumbnail,
-        duration: data.duration,
-        duration_string: data.duration_string,
-        uploader: data.uploader,
-        view_count: data.view_count,
-        subtitles: data.subtitles,
-        auto_captions: data.auto_captions,
-        original_language: data.original_language,
+        id: fastData.id,
+        title: fastData.title,
+        description: fastData.description,
+        thumbnail: fastData.thumbnail,
+        duration: fastData.duration,
+        duration_string: fastData.duration_string,
+        uploader: fastData.uploader,
+        view_count: fastData.view_count,
+        subtitles: fastData.subtitles,
+        auto_captions: fastData.auto_captions,
+        original_language: fastData.original_language,
       });
-      setVideoTitle(data.title);
-      setDuration(data.duration);
-      
-      // Store available subtitle languages (separate manual and auto)
-      if (data.subtitles && Object.keys(data.subtitles).length > 0) {
-        setManualSubtitles(Object.keys(data.subtitles));
-      }
-      if (data.auto_captions && Object.keys(data.auto_captions).length > 0) {
-        setAutoCaptions(Object.keys(data.auto_captions));
-      }
+      setVideoTitle(fastData.title);
+      setDuration(fastData.duration);
+      setIsLoadingUrl(false);
+
+      // Background: full metadata (subtitles, duration, etc.)
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/video/info?url=${encodeURIComponent(urlInput)}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch full video info');
+          }
+          return response.json();
+        })
+        .then((result) => {
+          const data = result.data;
+
+          setYoutubeInfo({
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            thumbnail: data.thumbnail,
+            duration: data.duration,
+            duration_string: data.duration_string,
+            uploader: data.uploader,
+            view_count: data.view_count,
+            subtitles: data.subtitles,
+            auto_captions: data.auto_captions,
+            original_language: data.original_language,
+          });
+          setVideoTitle(data.title);
+          setDuration(data.duration);
+
+          // Store available subtitle languages (separate manual and auto)
+          if (data.subtitles && Object.keys(data.subtitles).length > 0) {
+            setManualSubtitles(Object.keys(data.subtitles));
+          }
+          if (data.auto_captions && Object.keys(data.auto_captions).length > 0) {
+            setAutoCaptions(Object.keys(data.auto_captions));
+          }
+        })
+        .catch((error) => {
+          console.error('Background metadata fetch failed:', error);
+        });
     } catch (error) {
       setUrlError(error instanceof Error ? error.message : 'Failed to load video');
     } finally {

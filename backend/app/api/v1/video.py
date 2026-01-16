@@ -64,6 +64,77 @@ async def get_video_info(
         )
 
 
+@router.get("/info/fast")
+async def get_video_info_fast(
+    url: str = Query(..., description="YouTube video URL")
+):
+    """
+    Get fast video info using oEmbed (instant response).
+
+    Uses cached full metadata when available, otherwise returns
+    minimal data (title, thumbnail, author) without subtitles.
+    """
+    try:
+        video_id = youtube_metadata_service.extract_video_id(url)
+        if not video_id:
+            raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+
+        # Serve from cache if available
+        cached = youtube_metadata_service.get_cached_metadata(video_id)
+        if cached:
+            return {
+                "success": True,
+                "data": {
+                    "id": cached.get("video_id"),
+                    "title": cached.get("title", "Unknown Title"),
+                    "description": cached.get("description", ""),
+                    "thumbnail": cached.get("thumbnail"),
+                    "duration": cached.get("duration", 0),
+                    "duration_string": "0:00" if not cached.get("duration") else None,
+                    "uploader": cached.get("author", "Unknown"),
+                    "view_count": cached.get("view_count"),
+                    "embed_url": cached.get("embed_url", f"https://www.youtube.com/embed/{video_id}"),
+                    "watch_url": cached.get("watch_url", f"https://www.youtube.com/watch?v={video_id}"),
+                    "subtitles": cached.get("subtitles", {}),
+                    "auto_captions": cached.get("auto_captions", {}),
+                    "original_language": cached.get("original_language", "en"),
+                    "source": "cache",
+                }
+            }
+
+        # Fast oEmbed fetch
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            response = await client.get(
+                "https://www.youtube.com/oembed",
+                params={"url": url, "format": "json"}
+            )
+            response.raise_for_status()
+            oembed = response.json()
+
+        # Minimal response for instant UI
+        return {
+            "success": True,
+            "data": {
+                "id": video_id,
+                "title": oembed.get("title", "Unknown Title"),
+                "description": "",
+                "thumbnail": oembed.get("thumbnail_url", f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"),
+                "duration": 0,
+                "duration_string": "0:00",
+                "uploader": oembed.get("author_name", "Unknown"),
+                "view_count": None,
+                "embed_url": f"https://www.youtube.com/embed/{video_id}",
+                "watch_url": f"https://www.youtube.com/watch?v={video_id}",
+                "subtitles": {},
+                "auto_captions": {},
+                "original_language": "en",
+                "source": "oembed",
+            }
+        }
+    except httpx.HTTPError:
+        raise HTTPException(status_code=502, detail="Failed to fetch fast video info")
+
+
 @router.get("/subtitles/proxy")
 async def proxy_subtitles(
     url: str = Query(..., description="Subtitle URL to proxy")
