@@ -14,20 +14,20 @@ import { useState, useEffect } from 'react';
 // Logo component - Premium wordmark with icon
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       {/* Professional logo image */}
-      <div className="relative flex h-9 w-9 items-center justify-center">
+      <div className="relative flex h-12 w-12 items-center justify-center">
         <img 
           src="/web_logo.svg" 
           alt="LearnTube AI" 
           className="h-full w-full object-contain"
         />
         {/* Subtle glow effect */}
-        <div className="absolute inset-0 rounded-[10px] bg-primary/10 blur-md -z-10" />
+        <div className="absolute inset-0 rounded-[12px] bg-primary/10 blur-md -z-10" />
       </div>
       
       {/* Wordmark */}
-      <span className="font-heading text-lg font-semibold tracking-tight">
+      <span className="font-heading text-xl font-semibold tracking-tight">
         LearnTube
         <span className="text-primary">AI</span>
       </span>

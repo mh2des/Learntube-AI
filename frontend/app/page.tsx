@@ -259,11 +259,11 @@ export default function HomePage() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center">
             {/* Logo */}
-            <div className="mb-6 animate-fade-in flex justify-center">
+            <div className="mb-8 animate-fade-in flex justify-center">
               <img 
                 src="/web_logo.svg" 
                 alt="LearnTube AI" 
-                className="h-20 w-20 object-contain"
+                className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 object-contain"
               />
             </div>
 
