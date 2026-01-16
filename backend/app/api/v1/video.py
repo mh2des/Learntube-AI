@@ -256,3 +256,27 @@ async def get_embed_info(
             status_code=500,
             detail=f"Failed to fetch embed info: {str(e)}"
         )
+
+
+@router.get("/audio-url")
+async def get_audio_url(
+    url: str = Query(..., description="YouTube video URL")
+):
+    """
+    Get best audio stream URL for AI transcription (no download, no storage).
+    """
+    try:
+        audio_url = await youtube_metadata_service.get_audio_url(url)
+        return {
+            "success": True,
+            "data": {
+                "audio_url": audio_url
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch audio URL: {str(e)}"
+        )

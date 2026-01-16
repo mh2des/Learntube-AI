@@ -40,7 +40,7 @@ import {
   QuizComponent,
   AITutorChat,
 } from '@/components/learn';
-import { useTranscription, type TranscriptSegment } from '@/lib/ai';
+import { useTranscription, transcribeFromUrl, type TranscriptSegment } from '@/lib/ai';
 import { cn } from '@/lib/utils';
 
 // Available languages for translation
@@ -135,6 +135,7 @@ export default function LearnPage() {
   const [urlInput, setUrlInput] = useState('');
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
 
   // Active learning tool tab
   const [activeTab, setActiveTab] = useState('transcript');
@@ -193,6 +194,7 @@ export default function LearnPage() {
     setTranscript('');
     setSegments([]);
     setTranscriptSource(null);
+    setCurrentUrl(urlInput.trim());
 
     try {
       // Fast path: instant metadata via oEmbed/cache
@@ -439,15 +441,38 @@ export default function LearnPage() {
 
   // Transcribe video
   const handleTranscribe = async () => {
-    if (!videoRef.current || !videoSrc) return;
-
     try {
-      // Extract audio from video
-      const response = await fetch(videoSrc);
-      const blob = await response.blob();
-      const audioFile = new File([blob], 'audio.mp4', { type: 'video/mp4' });
+      // Local upload: transcribe directly from file blob
+      if (videoSrc) {
+        const response = await fetch(videoSrc);
+        const blob = await response.blob();
+        const audioFile = new File([blob], 'audio.mp4', { type: blob.type || 'video/mp4' });
+        await transcribe(audioFile);
+        return;
+      }
 
-      await transcribe(audioFile);
+      // YouTube: fetch best audio URL for transcription
+      if (currentUrl) {
+        const audioResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/video/audio-url?url=${encodeURIComponent(currentUrl)}`
+        );
+
+        if (!audioResponse.ok) {
+          throw new Error('Failed to fetch audio stream for transcription');
+        }
+
+        const audioResult = await audioResponse.json();
+        const audioUrl = audioResult?.data?.audio_url;
+        if (!audioUrl) {
+          throw new Error('No audio stream available for transcription');
+        }
+
+        const result = await transcribeFromUrl(audioUrl);
+        setTranscript(result.text);
+        setSegments(result.segments);
+        setTranscriptSource('ai');
+        return;
+      }
     } catch (error) {
       console.error('Transcription error:', error);
     }

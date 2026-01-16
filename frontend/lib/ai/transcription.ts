@@ -9,6 +9,7 @@ export interface TranscriptSegment {
   end: number;
   text: string;
   words?: WordTimestamp[];
+  speaker?: string;
 }
 
 export interface WordTimestamp {

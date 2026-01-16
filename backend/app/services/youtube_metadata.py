@@ -20,6 +20,8 @@ class YouTubeMetadataService:
     # Simple in-memory cache to speed up repeated requests
     _cache: Dict[str, Dict] = {}
     _cache_ttl_seconds: int = 600  # 10 minutes
+    _audio_cache: Dict[str, Dict] = {}
+    _audio_cache_ttl_seconds: int = 600  # 10 minutes
     _inflight: Dict[str, asyncio.Task] = {}
     _lock = asyncio.Lock()
 
@@ -28,6 +30,13 @@ class YouTubeMetadataService:
         cached = self._cache.get(video_id)
         if cached and cached.get("expires_at", 0) > time.time():
             return cached.get("data")
+        return None
+
+    def get_cached_audio_url(self, video_id: str) -> Optional[str]:
+        """Return cached audio URL if valid, otherwise None."""
+        cached = self._audio_cache.get(video_id)
+        if cached and cached.get("expires_at", 0) > time.time():
+            return cached.get("audio_url")
         return None
     
     # yt-dlp options - METADATA ONLY, NO DOWNLOADS
@@ -60,6 +69,45 @@ class YouTubeMetadataService:
         """Synchronous extraction using yt-dlp."""
         with yt_dlp.YoutubeDL(self.YDL_OPTS) as ydl:
             return ydl.extract_info(url, download=False)
+
+    def _extract_audio_url_sync(self, url: str) -> str:
+        """Extract best audio URL without downloading."""
+        audio_opts = {
+            **self.YDL_OPTS,
+            "format": "bestaudio/best",
+            "noplaylist": True,
+        }
+        with yt_dlp.YoutubeDL(audio_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        if not info:
+            raise ValueError("Could not extract audio information")
+
+        # If a single format was selected, yt-dlp exposes a direct URL
+        direct_url = info.get("url")
+        if direct_url:
+            return direct_url
+
+        # Fallback: pick the best audio-only format
+        formats = info.get("formats") or []
+        audio_formats = [
+            f for f in formats
+            if f.get("acodec") not in (None, "none")
+        ]
+        if not audio_formats:
+            raise ValueError("No audio formats available")
+
+        # Prefer higher bitrate
+        best_audio = sorted(
+            audio_formats,
+            key=lambda f: (f.get("abr") or 0, f.get("tbr") or 0),
+            reverse=True,
+        )[0]
+
+        if not best_audio.get("url"):
+            raise ValueError("Failed to resolve audio stream URL")
+
+        return best_audio["url"]
 
     async def _fetch_metadata(self, url: str, video_id: str) -> Dict:
         """Fetch metadata from yt-dlp and normalize response."""
@@ -170,6 +218,30 @@ class YouTubeMetadataService:
             raise
         except Exception as e:
             raise ValueError(f"Failed to fetch video metadata: {str(e)}")
+
+    async def get_audio_url(self, url: str) -> str:
+        """Get best audio URL for Groq transcription (no download)."""
+        video_id = self.extract_video_id(url)
+        if not video_id:
+            raise ValueError("Invalid YouTube URL")
+
+        cached_audio = self.get_cached_audio_url(video_id)
+        if cached_audio:
+            return cached_audio
+
+        loop = asyncio.get_event_loop()
+        audio_url = await loop.run_in_executor(
+            self._executor,
+            self._extract_audio_url_sync,
+            url
+        )
+
+        self._audio_cache[video_id] = {
+            "audio_url": audio_url,
+            "expires_at": time.time() + self._audio_cache_ttl_seconds,
+        }
+
+        return audio_url
     
     async def get_captions_info(self, url: str) -> Dict:
         """Get available caption/subtitle languages."""

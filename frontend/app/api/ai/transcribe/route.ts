@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       temperature: 0,
       language: language || undefined,
       prompt: prompt || undefined,
+      timestamp_granularities: ['word', 'segment'],
     });
 
     // Parse the verbose response
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         end: number;
         text: string;
         words?: Array<{ word: string; start: number; end: number }>;
+        speaker?: string;
       }>;
       language: string;
       duration: number;
@@ -63,6 +65,7 @@ export async function POST(request: NextRequest) {
           end: seg.end,
           text: seg.text.trim(),
           words: seg.words,
+          speaker: seg.speaker || 'Speaker 1',
         })) || [],
         language: result.language,
         duration: result.duration,
