@@ -786,7 +786,7 @@ export default function LearnPage() {
                       </p>
                       <Button
                         onClick={handleTranscribe}
-                        disabled={isTranscribing || !videoSrc}
+                        disabled={isTranscribing || (!videoSrc && !currentUrl)}
                         variant="secondary"
                       >
                         {isTranscribing ? (
@@ -801,9 +801,14 @@ export default function LearnPage() {
                           </>
                         )}
                       </Button>
-                      {!videoSrc && (
+                      {!videoSrc && currentUrl && (
                         <p className="text-xs text-muted-foreground">
-                          Upload the video file first to enable AI transcription
+                          AI will fetch the audio stream from YouTube for transcription.
+                        </p>
+                      )}
+                      {!videoSrc && !currentUrl && (
+                        <p className="text-xs text-muted-foreground">
+                          Upload the video file first to enable AI transcription.
                         </p>
                       )}
                     </div>
@@ -1089,28 +1094,26 @@ export default function LearnPage() {
                         <div className="space-y-2">
                           <p className="font-medium text-amber-600">No subtitles available</p>
                           <p className="text-sm text-muted-foreground">
-                            This video doesn't have subtitles on YouTube. You can generate a transcript using AI by uploading the video file.
+                            This video doesn't have subtitles on YouTube. You can generate a transcript using AI from the YouTube audio stream.
                           </p>
-                          {videoSrc && (
-                            <Button
-                              onClick={handleTranscribe}
-                              disabled={isTranscribing}
-                              size="sm"
-                              className="mt-2"
-                            >
-                              {isTranscribing ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Transcribing with AI...
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="h-4 w-4 mr-2" />
-                                  Generate AI Transcript
-                                </>
-                              )}
-                            </Button>
-                          )}
+                          <Button
+                            onClick={handleTranscribe}
+                            disabled={isTranscribing || (!videoSrc && !currentUrl)}
+                            size="sm"
+                            className="mt-2"
+                          >
+                            {isTranscribing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Transcribing with AI...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Generate AI Transcript
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </div>
